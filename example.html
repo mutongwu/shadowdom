@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Pop-up info box — web components</title>
+    <script src="main.js" defer></script>
+  </head>
+  <body>
+    <h1>Pop-up info widget - web components</h1>
+    <strong>lalala</strong>
+    <style type="text/css">
+      body {
+        font-weight:  500;
+      }
+      h2 {
+        position: relative;
+        color:  rebeccapurple;
+        height: 100px;
+        border: 1px solid black;
+      }
+      p {
+        background: green;
+      }
+      form {
+        background: green;
+      }
+    </style>
+    <h2 name="jack">
+      hello world
+    </h2>
+    <form>
+      <div>
+        <label for="cvc">Enter your CVC <popup-info  data-text="Your card validation code (CVC) is an extra security feature — it is the last 3 or 4 numbers on the back of your card."></popup-info></label>
+        <input type="text" id="cvc">
+      </div>
+    </form>
+    <script type="text/javascript">
+      const el = document.querySelector('h2');
+          const shadow = el.attachShadow({mode: 'open'});
+      shadow.innerHTML = `<style>:host{color: red !important}</style><p style="">
+        Hello, ${el.getAttribute('name')}
+      </p>`;
+    </script>
+    <style>
+      span { font-weight: bold }
+    </style>
+<hr>
+<user-card>
+  <div slot="username"><span>John Smith</span></div>
+</user-card>
+
+<div class="darktheme">
+  <user-card>
+    <strong slot="username"><span>Lucy</span></strong>
+  </user-card>
+</div>
+
+
+<script>
+customElements.define('user-card', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.innerHTML = `
+      <style>
+      slot[name="username"] { color: green; } /* OK! */
+      ::slotted(div) { border:1px solid red; } /* 伪类 ::slotted(selector) OK! */
+      ::slotted(strong) { border:1px solid red;} /* 伪类 ::slotted(selector) OK! */
+      :host-context(.darktheme) {background:black;color:#fff;} /* :host-context(selector) 可以选取挂载点的父节点（直接或间接都可以）*/
+      span { background: red; } /* 不起作用，因为 span 标签是在外部 host定义的。*/
+      </style>
+      Name: <slot name="username"></slot>
+    `;
+  }
+});
+</script>
+<hr>
+<style>
+  body {
+    --user-card-field-color: blue;
+  }
+</style>
+
+<template id="tmpl">
+  <style>
+    .field {
+      color: var(--user-card-field-color, black);
+    }
+  </style>
+  <div class="field">Name: <slot name="username"></slot></div>
+  <div class="field">Birthday: <slot name="birthday"></slot></div>
+</template>
+
+<script>
+customElements.define('user-card2', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.append(document.getElementById('tmpl').content.cloneNode(true));
+  }
+});
+</script>
+
+<user-card2>
+  <span slot="username">John Smith</span>
+  <span slot="username">，还有一个（Tim Cook）</span>
+  <span slot="birthday">01.01.2001</span>
+</user-card2>
+
+<hr>
+<template id="name-badge">
+  <style>
+  #nameBox ::slotted(h2) {
+    margin: 0;
+    font-weight: 300;
+/*  权重依然小于主文档的 h2 selector , 除非直接使用 !important 覆盖。  
+    color: red;
+    height: 60px;
+    border-color: yellowgreen;*/
+  }
+  ::slotted(.title) {
+     color: orange;
+  }
+  /* DOESN'T WORK (can only select top-level nodes).
+  ::slotted(.company),
+  ::slotted(.title .company) {
+    text-transform: uppercase;
+  }
+  */
+  </style>
+  <div id="nameBox">
+    <slot></slot>  
+  </div>
+  
+</template>
+
+<script>
+customElements.define('name-badge', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.append(document.getElementById('name-badge').content.cloneNode(true));
+  }
+});
+</script>
+
+<name-badge>
+  <h2>Eric Bidelman</h2>
+  <span class="title">
+    Digital Jedi, <span class="company">Google</span>
+  </span>
+</name-badge>
+
+
+<hr>
+<template id="name-badge2">
+  <style>
+    :host {
+      all: initial; /* 1st rule so subsequent properties are reset. */
+      display: block;
+      background: white;
+    }
+  </style>
+  <div id="nameBox">
+    <slot></slot>  
+  </div>
+  <h2>内部h2,</h2>
+  <span>没有加粗</span>
+</template>
+
+<name-badge2>
+  <h2>Eric Bidelman</h2>
+  <span class="title">
+    Digital Jedi, <span class="company">Google</span>
+  </span>
+</name-badge2>
+
+<script>
+customElements.define('name-badge2', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.append(document.getElementById('name-badge2').content.cloneNode(true));
+  }
+});
+</script>
+
+  </body>
+</html>

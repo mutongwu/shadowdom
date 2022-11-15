@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>shadow DOM style</title>
+	<style type="text/css">
+		.sample {
+			display: flex;
+			margin: 10px 0;
+		}
+		.sample div.section {
+			flex: 1;
+			width:  20%;
+			box-sizing: border-box;
+			padding:  10px;
+			border: 2px dashed black;
+		}
+
+		h1 {
+			color: red;
+		}
+		h2 {
+			color: blue;
+		}
+		button {
+			border:  1px solid black;
+			background: #000;
+			color: #fff;
+			padding: 5px;
+		}
+		/* 区分大小写 */
+		::part(text) {
+			color: blue;
+		}
+		::part(Text) {
+			color: brown;
+		}
+		/* 可以指定自定义标签，也可以设置伪类 */
+		shadow-sample::part(Text):hover {
+			text-decoration: underline;
+		}
+		/* NOT WORKS! 只支持目标元素，不支持选择子元素 */
+		shadow-sample::part(ext) span {
+			color:  blue;
+		}
+	</style>
+
+</head>
+<body>
+	<div class="sample">
+		<div class="section">
+			<h1>H1元素</h1>
+			<h2>H2元素</h2>
+			<span>span 元素</span>， <span>another span 元素</span>
+			<button>click button</button>
+			<div><span>hello world</span></div>
+		</div>
+		<div class="section">
+			<shadow-sample></shadow-sample>
+		</div>
+		<div class="section">
+			<shadow-sample-outer></shadow-sample-outer>
+		</div>
+	</div>
+	<script>
+	customElements.define('shadow-sample', class extends HTMLElement {
+	  connectedCallback() {
+	    this.attachShadow({mode: 'open'});
+	    this.shadowRoot.innerHTML = `
+	    	<style>
+	    		:host {
+	    			all: initial;
+	    		}
+	    		span {
+	    			color: green;
+	    		}
+	    		button {
+	    			color: red;
+	    			border: 1px solid red;
+	    		}
+	    	</style>
+		    <h1>H1元素</h1>
+			<h2>H2元素</h2>
+			<span part="text">span 元素</span>，<span part="Text">another span 元素</span>
+			<button part="btn">click button</button>
+			<div part="ext"><span>hello world</span></div>
+	    `;
+	  }
+	});
+
+	customElements.define('shadow-sample-outer', class extends HTMLElement {
+	  connectedCallback() {
+	    this.attachShadow({mode: 'open'});
+	    // 导出子dom tree 的part属性
+	    this.shadowRoot.innerHTML = `
+	    	<shadow-sample-inner exportparts="innerspan: text,Text"></shadow-sample-inner>
+	    `;
+	  }
+	});
+
+	customElements.define('shadow-sample-inner', class extends HTMLElement {
+	  connectedCallback() {
+	    this.attachShadow({mode: 'open'});
+	    this.shadowRoot.innerHTML = `
+    		<style>
+    			:host {
+	    			all: initial;
+	    		}
+	    		span {
+	    			color: green;
+	    		}
+	    		button {
+	    			color: red;
+	    			border: 1px solid red;
+	    		}
+	    	</style>
+		    <h1>H1元素</h1>
+			<h2>H2元素</h2>
+			<span part="innerspan">span 元素</span>，<span part="Text">another span 元素</span>
+			<button part="btn">click button</button>
+			<div part="ext"><span>hello world</span></div>
+	    `;
+	  }
+	});
+	
+	</script>
+</body>
+</html>

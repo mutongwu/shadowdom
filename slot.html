@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>shadow DOM style</title>
+    <style type="text/css">
+      .sample {
+        display: flex;
+        margin: 10px 0;
+      }
+
+      .sample div.section {
+        flex: 1;
+        width: 20%;
+        box-sizing: border-box;
+        padding: 10px;
+        border: 2px dashed black;
+      }
+
+      body {
+        background: #ccc;
+      }
+
+      h1 {
+        color: red;
+      }
+
+      h2 {
+        color: blue;
+      }
+
+      span {
+        color: green;
+      }
+
+      button {
+        border: 1px solid black;
+        background: #000;
+        color: #fff;
+        padding: 5px;
+      }
+    </style>
+  </head>
+
+  <body class="light-theme">
+    <div class="sample">
+      <div class="section">
+        <h1>H1元素</h1>
+        <h2>H2元素</h2>
+        <span>span 元素</span>
+        <button>click button</button>
+      </div>
+      <div class="section">
+        <user-card>
+          <!-- slot的内容，样式由主文档决定。-->
+          <h1 class="name">H1元素</h1>
+          <h2>H2元素</h2>
+          <span>span 元素</span>
+          <button>click button</button>
+        </user-card>
+      </div>
+      <div class="section">
+        <user-card2>
+          <!-- slot的内容，样式由主文档决定。-->
+          <div slot="userName">
+            <h1 class="name">H1元素</h1>
+          </div>
+          <h2>H2元素</h2>
+          <div slot="ext" class="extCls">
+            <span>span 元素</span>
+            <button>click button</button>
+            hello world.
+          </div>
+        </user-card2>
+      </div>
+    </div>
+
+    <div class="sample">
+      <div class="section">
+        <h1>H1元素</h1>
+        <h2>H2元素</h2>
+        <span>span 元素</span>
+        <button>click button</button>
+      </div>
+      <div class="section">
+        <user-card3>
+          <!-- slot的内容，样式由主文档决定。-->
+          <div slot="userName">
+            <h1 class="name">H1元素</h1>
+          </div>
+          <h2>H2元素</h2>
+          <div slot="ext" class="extCls">
+            <span>span 元素</span>
+            <button>click button</button>
+            hello world.
+          </div>
+        </user-card3>
+      </div>
+
+      <div class="section">
+        <user-card4>
+          <!-- slot的内容，样式由主文档决定。-->
+          <div slot="userName">
+            <h1 class="name">H1元素</h1>
+          </div>
+          <h2>H2元素</h2>
+          <div slot="ext" class="extCls">
+            <span>span 元素</span>
+            <button>click button</button>
+            hello world.
+          </div>
+        </user-card4>
+      </div>
+    </div>
+    <script>
+      customElements.define(
+        "user-card",
+        class extends HTMLElement {
+          connectedCallback() {
+            this.attachShadow({
+              mode: "open",
+            });
+            this.shadowRoot.innerHTML = `
+		    	  <style>
+					  	:host {
+					  		all: initial;
+					  	}
+					  	:host button{
+					  		color: red;
+					  	}
+					  </style>
+					  <div class="userInfo">
+					  	<slot></slot> 
+					  </div>
+
+					  <hr>
+					  <!-- 自定义元素的内容，样式由自己决定.-->
+					  <h1 class="name">H1元素</h1> 
+					  <h2>H2元素</h2>
+					  <div class="ext">
+					  	<span>span 元素</span>
+					  	<button>click button</button>
+					  </div>
+		    `;
+          }
+        }
+      );
+
+      customElements.define(
+        "user-card2",
+        class extends HTMLElement {
+          connectedCallback() {
+            this.attachShadow({
+              mode: "open",
+            });
+            this.shadowRoot.innerHTML = `
+	    	  <style>
+				  	:host {
+				  		all: initial;
+				  	}
+				  	slot{
+				  		display: block;
+				  		background: pink;
+				  	}
+				  	slot[name="ext"]{
+				  		display:block;
+				  		background: #fff;
+				  		color: red; /* 有效，但对span/button不起影响，因为权重小于主文档标签的color定义。*/
+				  	}
+				  	/* DOESN'T WORK. 不支持选择子元素 */
+				  	slot[name="ext"] span {
+				  		color: yellow;
+				  	}
+				  </style>
+				  <div class="userInfo">
+				  	<slot name="userName"></slot> 
+				  	<slot></slot>
+				  	<slot name="ext"></slot> 
+				  </div>
+	    `;
+          }
+        }
+      );
+
+      customElements.define(
+        "user-card3",
+        class extends HTMLElement {
+          connectedCallback() {
+            this.attachShadow({
+              mode: "open",
+            });
+            this.shadowRoot.innerHTML = `
+	    	  <style>
+				  	:host {
+				  		all: initial;
+				  	}
+				  	::slotted(*){
+				  		display: block;
+				  		background: pink;
+				  	}
+				  	/* selector 支持顶部 class */
+				  	::slotted(.extCls){ /* class 选择器权重大于类型 */
+				  		background: #fff;
+				  		border:1px solid red; 
+				  	}
+				  	/* selector 也支持顶部标签 */
+				  	::slotted(div){
+				  		background: #00f;
+				  	}
+
+				  	/* DOESN'T WORK. 不支持选择 light DOM 子元素 */
+				  	::slotted(.extCls) button{
+				  		color: blue;
+				  	}
+
+				  	/* DOESN'T WORK. 选择器不支持选择子元素 */
+				  	::slotted(.extCls button) {
+				  		color: blue;
+				  	}
+				  </style>
+				  <div class="userInfo">
+				  	<slot name="userName"></slot> 
+				  	<slot></slot>
+				  	<slot name="ext"></slot> 
+				  </div>
+	    `;
+          }
+        }
+      );
+
+
+      customElements.define(
+        "user-card4",
+        class extends HTMLElement {
+          connectedCallback() {
+            this.attachShadow({
+              mode: "open",
+            });
+            this.shadowRoot.innerHTML = `
+          <style>
+            :host {
+              all: initial;
+            }
+            :host-context(body.light-theme) slot{
+              display: block;
+              background: #fff;
+              color: black;
+            }
+            /* 权重小于class */
+            :host-context(div) slot {
+              background: #ff0;
+            }
+          </style>
+          <div class="userInfo">
+            <slot name="userName"></slot> 
+            <slot></slot>
+            <slot name="ext"></slot> 
+          </div>
+      `;
+          }
+        }
+      );
+    </script>
+  </body>
+</html>

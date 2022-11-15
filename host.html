@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>shadow DOM style</title>
+	<style type="text/css">
+		.sample {
+			display: flex;
+			margin: 10px 0;
+		}
+		.sample div.section {
+			flex: 1;
+			width:  20%;
+			box-sizing: border-box;
+			padding:  10px;
+			border: 2px dashed black;
+		}
+		body {
+			background: #fff;
+		}
+		h1 {
+			color: red;
+		}
+		h2 {
+			color: blue;
+		}
+		button {
+			border:  1px solid black;
+			background: #000;
+			color: #fff;
+			padding: 5px;
+		}
+	</style>
+
+</head>
+<body>
+	<div class="sample">
+		<div class="section">
+			<h1>H1元素</h1>
+			<h2>H2元素</h2>
+			<span>span 元素</span>
+			<button>click button</button>
+		</div>
+		<div class="section">
+			<!-- 重置了 shadow root 节点样式 -->
+			<h1>
+				<shadow-sample></shadow-sample>
+			</h1>
+		</div>
+		<div class="section">
+			<!-- 重置了 shadow root 节点样式 -->
+			<h1>
+				<shadow-sample class="reset-bg"></shadow-sample>
+			</h1>
+		</div>
+		<div class="section">
+			<!-- 重置了 shadow root 节点字体样式 -->
+			<h1>
+				<shadow-sample reset-font-color></shadow-sample>
+			</h1>
+		</div>
+	</div>
+	<script>
+	customElements.define('shadow-sample', class extends HTMLElement {
+	  connectedCallback() {
+	    this.attachShadow({mode: 'open'});
+	    this.shadowRoot.innerHTML = `
+	    	<style>
+	    		:host {
+	    			all: initial;
+	    		}
+	    		:host(.reset-bg){
+	    			/* 自定义元素默认是dispaly:inline,设置为block，才能正常包裹区域元素。 */
+	    			display: block; 
+	    			background: yellow;
+	    			border: 1px solid red;
+	    		}
+	    		:host([reset-font-color]) {
+	    			font-size: 16px;
+	    		}
+	    		:host([reset-font-color]) span{
+	    			font-size: 12px;
+	    			color: blue;
+	    		}
+	    		span {
+	    			color: green;
+	    		}
+	    	</style>
+		    <h1>H1元素</h1>
+			<h2>H2元素</h2>
+			<span>span 元素(字体/颜色)</span>
+			<button>click button</button>
+	    `;
+	  }
+	});
+	</script>
+
+	更多 :host 选择器样例：		
+	<pre style="border: 1px solid black">
+	:host {
+		opacity: 0.4;
+		will-change: opacity;
+		transition: opacity 300ms ease-in-out;
+	}
+	:host(:hover) {
+		opacity: 1;
+	}
+	:host([disabled]) { /* style when host has disabled attribute. */
+		background: grey;
+		pointer-events: none;
+		opacity: 0.4;
+	}
+	:host(.blue) {
+		color: blue; /* color host when it has class="blue" */
+	}
+	:host(.pink) > #tabs {
+		color: pink; /* color internal #tabs node when host has class="pink". */
+	}
+	</pre>
+</body>
+</html>
